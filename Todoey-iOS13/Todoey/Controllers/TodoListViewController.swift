@@ -1,18 +1,20 @@
 import UIKit
+import CoreData
 
 class TodoListViewController: UITableViewController {
     
     var itemArray : [Item] = [Item]()
-    let dataFilePath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.appendingPathComponent("Items.plist")
+    let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
+//    let dataFilePath =  FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.appendingPathComponent("Items.plist")
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        
         loadItems()
+//        for fething from user defaults
 //        if let items = defaults.array(forKey: "ToDoListItemArray") as? [Item] {
 //            itemArray = items
 //        }
-        
+        print(FileManager.default.urls(for: .documentDirectory, in: .userDomainMask))
     }
 
     
@@ -24,7 +26,13 @@ class TodoListViewController: UITableViewController {
         
         let action = UIAlertAction(title: "Add Todo", style: .default) { (action : UIAlertAction) in
             if textField.text != "" {
-                self.itemArray.append(Item(title: textField.text!))
+//                self.itemArray.append(Item(title: textField.text!))
+                
+                let newItem = Item(context: self.context)
+                newItem.title = textField.text
+                newItem.isComplete = false
+                
+                self.itemArray.append(newItem)
                 self.saveItems()
                 self.tableView.reloadData()
             }
@@ -38,23 +46,36 @@ class TodoListViewController: UITableViewController {
     }
     
     
+//    func loadItems()  {
+//          Load items with Info.plist
+//        do {
+//            if let data = try? Data(contentsOf: dataFilePath!){
+//                let decoder = PropertyListDecoder()
+//                itemArray = try decoder.decode([Item].self, from: data)
+//            }
+//        } catch {
+//            print("Error while decoding")
+//        }
+//    }
+    
     func loadItems()  {
+        let request : NSFetchRequest<Item> = Item.fetchRequest()
         do {
-            if let data = try? Data(contentsOf: dataFilePath!){
-                let decoder = PropertyListDecoder()
-                itemArray = try decoder.decode([Item].self, from: data)
-            }
-        } catch {
-            print("Error while decoding")
+            self.itemArray = try self.context.fetch(request)
+        }
+        catch {
+            print("error fetching data from db")
         }
     }
     
+
     
     func saveItems()  {
-        let encoder = PropertyListEncoder()
+//        let encoder = PropertyListEncoder()
         do {
-            let data = try encoder.encode(self.itemArray)
-            try data.write(to: self.dataFilePath!)
+//            let data = try encoder.encode(self.itemArray)
+//            try data.write(to: self.dataFilePath!)
+            try self.context.save()
         } catch {
             print("Error in encoding")
         }
