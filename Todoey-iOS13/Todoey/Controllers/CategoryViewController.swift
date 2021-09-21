@@ -8,30 +8,45 @@
 
 import UIKit
 import CoreData
+import RealmSwift
 
 class CategoryViewController: UITableViewController {
-    var categories = [Categor]()
+//    var categories = [Categor]()
+    let realm = try! Realm()
     
     let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        loadCategories()
+//        loadCategories()
 
     }
     
-    func loadCategories(with request : NSFetchRequest<Categor> = Categor.fetchRequest()) {
-        do {
-            categories = try self.context.fetch(request)
-        } catch {
-            print("Error in loading")
-        }
-        tableView.reloadData()
-    }
+//    func loadCategories(with request : NSFetchRequest<Categor> = Categor.fetchRequest()) {
+//        do {
+//            categories = try self.context.fetch(request)
+//
+//        } catch {
+//            print("Error in loading")
+//        }
+//        tableView.reloadData()
+//    }
     
     func saveCategory()  {
         do {
             try self.context.save()
+        } catch {
+            print("Error in encoding")
+        }
+        tableView.reloadData()
+    }
+    
+    
+    func saveCategoryWithRealm(category: Category)  {
+        do {
+            try realm.write{
+                realm.add(category)
+            }
         } catch {
             print("Error in encoding")
         }
@@ -69,11 +84,15 @@ class CategoryViewController: UITableViewController {
         let action = UIAlertAction(title: "Add", style: .default) { (action : UIAlertAction) in
             if textField.text != "" {
                 
-                let category = Categor(context: self.context)
-                category.name = textField.text
+//                let category = Categor(context: self.context)
+//                category.name = textField.text
                 
-                self.categories.append(category)
-                self.saveCategory()
+                let newCategory : Category = Category()
+                newCategory.name = textField.text!
+                  
+                self.saveCategoryWithRealm(category: newCategory)
+//                self.categories.append(category)
+//                self.saveCategory()
                 self.tableView.reloadData()
             }
         }
